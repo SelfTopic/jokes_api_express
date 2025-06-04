@@ -42,4 +42,15 @@ export class JokeService {
         return joke;
 
     }
+
+    public async insertJoke(jokeText: string) {
+        if (!this.db)
+            throw new Error("Database is not init");
+
+        const result = await this.db.run(`INSERT INTO jokes (content) VALUES (?)`, jokeText);
+
+        const joke = await this.db.get<Joke>(`SELECT * FROM jokes WHERE id = ?`, result.lastID);
+
+        return joke;
+    }
 }

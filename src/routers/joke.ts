@@ -9,6 +9,7 @@ export const getRandomJoke = async (req: Request, res: Response) => {
 
     const joke = await jokeService.getRundomJoke();
     
+    
     if (!joke) {
       return res.status(404).json({ message: "No jokes found" });
     }
@@ -20,27 +21,42 @@ export const getRandomJoke = async (req: Request, res: Response) => {
   }
 };
 
-// export const createJoke = async (req: Request, res: Response) => {
-//   const { text, adminKey } = req.body;
+const config = {
+  ADMIN_KEY: "qwerty123"
+}
+
+export const createJoke = async (req: Request, res: Response) => {
+
+  const { text, adminKey } = req.body;
   
-//   if (adminKey !== config.ADMIN_KEY) {
-//     return res.status(403).json({ message: "Invalid admin key" });
-//   }
+  if (adminKey !== config.ADMIN_KEY) {
+    return res.status(403).json({ message: "Invalid admin key" });
+  }
   
-//   if (!text) {
-//     return res.status(400).json({ message: "Joke text is required" });
-//   }
+  if (!text) {
+    return res.status(400).json({ message: "Joke text is required" });
+  }
   
-//   try {
-//     const db = await initializeDb();
-//     const result = await db.run("INSERT INTO jokes (text) VALUES (?)", text);
-//     const newJoke = await db.get("SELECT * FROM jokes WHERE id = ?", result.lastID);
+  try {
+    const db = await initDatabase();
+    const jokesService = new JokeService(db);
+
+    const newJoke = await jokesService.insertJoke(text);
+
+    const status = {
+      ok: true,
+      joke: newJoke
+    }
     
-//     res.status(201).json(newJoke);
-//   } catch (error) {
-//     res.status(500).json({ message: "Error creating joke", error });
-//   }
-// };
+    if (!newJoke) {
+      status.ok = false
+    }
+
+    res.status(201).json(newJoke);
+  } catch (error) {
+    res.status(500).json({ message: "Error creating joke", error });
+  }
+};
 
 // export const deleteJoke = async (req: Request, res: Response) => {
 //   const { id } = req.params;
